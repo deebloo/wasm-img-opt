@@ -1,0 +1,20 @@
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[package]
+name = "image-opt"
+version = "0.1.0"
+authors = ["Danny Blue <dannybluedesign@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wasm-bindgen = { version = "0.2" }
+
+[profile.release]
+lto = true
+opt-level = 'z'
+
+[features]
+# default = ["wee_alloc"]
