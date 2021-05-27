@@ -1,17 +1,26 @@
-import init, { Lunr } from "./pkg/lunr_wasm";
+import init, { ImageOptimizer } from "./pkg/image_opt";
+
+const file = document.getElementById("file-upload") as HTMLInputElement;
 
 export async function main() {
-  const {} = await init();
+  await init();
 
-  const prebuilt_index: Uint8Array = await fetch("./search_index.bin")
-    .then((res) => res.arrayBuffer())
-    .then((res) => new Uint8Array(res));
+  const optimizer = ImageOptimizer.new();
 
-  const index = Lunr.new();
+  file.onchange = async () => {
+    const files = file.files || [];
 
-  index.load_index(prebuilt_index);
+    let source = await files[0].arrayBuffer();
 
-  const res = index.search("foo");
+    const data = optimizer.grayscale(new Uint8Array(source));
+    const blob = new Blob([data]);
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.src = url;
 
-  console.log(res);
+    console.log("data: " + data);
+    console.log("url: " + url);
+
+    document.body.appendChild(img);
+  };
 }
