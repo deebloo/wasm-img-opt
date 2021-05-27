@@ -81,4 +81,22 @@ impl ImageOptimizer {
 
         bytes
     }
+
+    pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Vec<u8> {
+        let reader = ImageReader::new(std::io::Cursor::new(data))
+            .with_guessed_format()
+            .unwrap();
+
+        let format = reader.format().unwrap();
+
+        let img = reader.decode().unwrap();
+
+        let mut bytes: Vec<u8> = Vec::new();
+
+        img.thumbnail(width, height)
+            .write_to(&mut bytes, format)
+            .unwrap();
+
+        bytes
+    }
 }
