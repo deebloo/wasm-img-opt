@@ -1,7 +1,7 @@
 {
-  "name": "lunr-wasm",
+  "name": "wasm-img-opt",
   "version": "1.0.0",
-  "description": "This project is an experiment to port the lunr search engine over to rust and run it in the browser and in node as web assembly.",
+  "description": "Bindings for the rust image crate",
   "main": "index.js",
   "scripts": {
     "start": "npm run build:wasm && snowpack dev",
