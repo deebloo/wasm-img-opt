@@ -19,37 +19,30 @@ export async function main() {
 
     source = new Uint8Array(await files[0].arrayBuffer());
 
-    const blob = new Blob([source]);
-    const url = URL.createObjectURL(blob);
-
-    image.src = url;
+    image.src = URL.createObjectURL(new Blob([source]));
   };
 
   blur.onclick = () => {
     const blob = new Blob([optimizer.blur(source, 5)]);
-    const url = URL.createObjectURL(blob);
 
-    image.src = url;
+    image.src = URL.createObjectURL(blob);
   };
 
   grayscale.onclick = () => {
     const blob = new Blob([optimizer.grayscale(source)]);
-    const url = URL.createObjectURL(blob);
 
-    image.src = url;
+    image.src = URL.createObjectURL(blob);
   };
 
   invert.onclick = () => {
     const blob = new Blob([optimizer.invert(source)]);
-    const url = URL.createObjectURL(blob);
 
-    image.src = url;
+    image.src = URL.createObjectURL(blob);
   };
 
   thumbnail.onclick = () => {
     const blob = new Blob([optimizer.thumbnail(source, 200, 200)]);
-    const url = URL.createObjectURL(blob);
 
-    image.src = url;
+    image.src = URL.createObjectURL(blob);
   };
 }
