@@ -18,43 +18,38 @@ impl ImageOptimizer {
         Self {}
     }
 
-    pub fn blur(&self, data: &[u8], value: f32) -> Vec<u8> {
+    pub fn blur(&self, data: &[u8], value: f32) -> Option<Vec<u8>> {
         self.read(&data, |img, format, bytes| {
             img.blur(value).write_to(bytes, format).unwrap();
         })
-        .unwrap()
     }
 
-    pub fn brighten(&self, data: &[u8], value: i32) -> Vec<u8> {
+    pub fn brighten(&self, data: &[u8], value: i32) -> Option<Vec<u8>> {
         self.read(&data, |img, format, bytes| {
             img.brighten(value).write_to(bytes, format).unwrap();
         })
-        .unwrap()
     }
 
-    pub fn grayscale(&self, data: &[u8]) -> Vec<u8> {
+    pub fn grayscale(&self, data: &[u8]) -> Option<Vec<u8>> {
         self.read(&data, |img, format, bytes| {
             img.grayscale().write_to(bytes, format).unwrap();
         })
-        .unwrap()
     }
 
-    pub fn invert(&self, data: &[u8]) -> Vec<u8> {
+    pub fn invert(&self, data: &[u8]) -> Option<Vec<u8>> {
         self.read(&data, |img, format, bytes| {
             img.invert();
 
             img.write_to(bytes, format).unwrap();
         })
-        .unwrap()
     }
 
-    pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Vec<u8> {
+    pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Option<Vec<u8>>{
         self.read(&data, |img, format, bytes| {
             img.thumbnail(width, height)
                 .write_to(bytes, format)
                 .unwrap();
         })
-        .unwrap()
     }
 
     fn read<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
