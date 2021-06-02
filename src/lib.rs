@@ -1,5 +1,6 @@
 use image;
-use image::io::Reader as ImageReader;
+use image::io::Reader;
+use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -14,89 +15,66 @@ pub struct ImageOptimizer {}
 #[wasm_bindgen]
 impl ImageOptimizer {
     pub fn new() -> Self {
-        ImageOptimizer {}
+        Self {}
     }
 
     pub fn blur(&self, data: &[u8], value: f32) -> Vec<u8> {
-        let reader = ImageReader::new(std::io::Cursor::new(data))
-            .with_guessed_format()
-            .unwrap();
-
-        let format = reader.format().unwrap();
-
-        let img = reader.decode().unwrap();
-
-        let mut bytes: Vec<u8> = Vec::new();
-
-        img.blur(value).write_to(&mut bytes, format).unwrap();
-
-        bytes
+        self.read(&data, |img, format, bytes| {
+            img.blur(value).write_to(bytes, format).unwrap();
+        })
+        .unwrap()
     }
 
     pub fn brighten(&self, data: &[u8], value: i32) -> Vec<u8> {
-        let reader = ImageReader::new(std::io::Cursor::new(data))
-            .with_guessed_format()
-            .unwrap();
-
-        let format = reader.format().unwrap();
-
-        let img = reader.decode().unwrap();
-
-        let mut bytes: Vec<u8> = Vec::new();
-
-        img.brighten(value).write_to(&mut bytes, format).unwrap();
-
-        bytes
+        self.read(&data, |img, format, bytes| {
+            img.brighten(value).write_to(bytes, format).unwrap();
+        })
+        .unwrap()
     }
 
     pub fn grayscale(&self, data: &[u8]) -> Vec<u8> {
-        let reader = ImageReader::new(std::io::Cursor::new(data))
-            .with_guessed_format()
-            .unwrap();
-
-        let format = reader.format().unwrap();
-
-        let img = reader.decode().unwrap();
-
-        let mut bytes: Vec<u8> = Vec::new();
-
-        img.grayscale().write_to(&mut bytes, format).unwrap();
-
-        bytes
+        self.read(&data, |img, format, bytes| {
+            img.grayscale().write_to(bytes, format).unwrap();
+        })
+        .unwrap()
     }
 
     pub fn invert(&self, data: &[u8]) -> Vec<u8> {
-        let reader = ImageReader::new(std::io::Cursor::new(data))
-            .with_guessed_format()
-            .unwrap();
+        self.read(&data, |img, format, bytes| {
+            img.invert();
 
-        let format = reader.format().unwrap();
-
-        let mut img = reader.decode().unwrap();
-        img.invert();
-
-        let mut bytes: Vec<u8> = Vec::new();
-
-        img.write_to(&mut bytes, format).unwrap();
-
-        bytes
+            img.write_to(bytes, format).unwrap();
+        })
+        .unwrap()
     }
 
     pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Vec<u8> {
-        let reader = ImageReader::new(std::io::Cursor::new(data))
-            .with_guessed_format()
-            .unwrap();
+        self.read(&data, |img, format, bytes| {
+            img.thumbnail(width, height)
+                .write_to(bytes, format)
+                .unwrap();
+        })
+        .unwrap()
+    }
 
-        let format = reader.format().unwrap();
+    fn read<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
+    where
+        F: FnOnce(&mut image::DynamicImage, image::ImageFormat, &mut Vec<u8>),
+    {
+        if let Ok(reader) = Reader::new(Cursor::new(data)).with_guessed_format() {
+            let format = reader.format().unwrap();
 
-        let img = reader.decode().unwrap();
+            if let Ok(mut img) = reader.decode() {
+                let mut bytes: Vec<u8> = Vec::new();
 
-        let mut bytes: Vec<u8> = Vec::new();
+                f(&mut img, format, &mut bytes);
 
-        img.thumbnail(width, height)
-            .write_to(&mut bytes, format)
-            .unwrap();
-
-        bytes
+                Some(bytes)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 }
