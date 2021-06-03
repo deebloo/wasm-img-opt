@@ -19,45 +19,53 @@ impl ImageOptimizer {
     }
 
     pub fn blur(&self, data: &[u8], value: f32) -> Option<Vec<u8>> {
-        self.read(&data, |img, format, bytes| {
-            img.blur(value).write_to(bytes, format).unwrap();
+        self.read_with_format(&data, |img, format, bytes| {
+            img.blur(value)
+                .write_to(bytes, format)
+                .expect("failed to blur image");
         })
     }
 
     pub fn brighten(&self, data: &[u8], value: i32) -> Option<Vec<u8>> {
-        self.read(&data, |img, format, bytes| {
-            img.brighten(value).write_to(bytes, format).unwrap();
+        self.read_with_format(&data, |img, format, bytes| {
+            img.brighten(value)
+                .write_to(bytes, format)
+                .expect("failed to brighten image");
         })
     }
 
     pub fn grayscale(&self, data: &[u8]) -> Option<Vec<u8>> {
-        self.read(&data, |img, format, bytes| {
-            img.grayscale().write_to(bytes, format).unwrap();
+        self.read_with_format(&data, |img, format, bytes| {
+            img.grayscale()
+                .write_to(bytes, format)
+                .expect("failed to grayscale image");
         })
     }
 
     pub fn invert(&self, data: &[u8]) -> Option<Vec<u8>> {
-        self.read(&data, |img, format, bytes| {
+        self.read_with_format(&data, |img, format, bytes| {
             img.invert();
 
-            img.write_to(bytes, format).unwrap();
+            img.write_to(bytes, format).expect("failed to invert image");
         })
     }
 
-    pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Option<Vec<u8>>{
-        self.read(&data, |img, format, bytes| {
+    pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Option<Vec<u8>> {
+        self.read_with_format(&data, |img, format, bytes| {
             img.thumbnail(width, height)
                 .write_to(bytes, format)
-                .unwrap();
+                .expect("failed to thumbnail image");
         })
     }
 
-    fn read<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
+    fn read_with_format<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
     where
         F: FnOnce(&mut image::DynamicImage, image::ImageFormat, &mut Vec<u8>),
     {
-        if let Ok(reader) = Reader::new(Cursor::new(data)).with_guessed_format() {
-            let format = reader.format().unwrap();
+        let cursor = Cursor::new(data);
+
+        if let Ok(reader) = Reader::new(cursor).with_guessed_format() {
+            let format = reader.format()?;
 
             if let Ok(mut img) = reader.decode() {
                 let mut bytes: Vec<u8> = Vec::new();

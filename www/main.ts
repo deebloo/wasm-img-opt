@@ -1,4 +1,5 @@
-import init, { ImageOptimizer } from "./pkg/image_opt";
+import { WorkerSwarm } from "worker-swarm";
+import { Action, Response } from "./actions";
 
 const image = document.getElementById("image") as HTMLImageElement;
 const file = document.getElementById("file-upload") as HTMLInputElement;
@@ -8,9 +9,10 @@ const invert = document.getElementById("invert") as HTMLButtonElement;
 const thumbnail = document.getElementById("thumbnail") as HTMLButtonElement;
 
 export async function main() {
-  await init();
-
-  const optimizer = ImageOptimizer.new();
+  const swarm = new WorkerSwarm<Action, Response>(
+    () => new Worker("./image.worker.js", { type: "module" }),
+    4
+  );
 
   let source: Uint8Array = new Uint8Array();
 
@@ -22,43 +24,35 @@ export async function main() {
     image.src = URL.createObjectURL(new Blob([source]));
   };
 
-  blur.onclick = () => {
-    const data = optimizer.blur(source, 5);
+  blur.onclick = async () => {
+    const res = await swarm.post({ type: "BLUR", payload: source });
 
-    if (data) {
-      const blob = new Blob([data]);
-
-      image.src = URL.createObjectURL(blob);
+    if (res.data.payload) {
+      image.src = URL.createObjectURL(new Blob([res.data.payload]));
     }
   };
 
-  grayscale.onclick = () => {
-    const data = optimizer.grayscale(source);
+  grayscale.onclick = async () => {
+    const res = await swarm.post({ type: "GRAYSCALE", payload: source });
 
-    if (data) {
-      const blob = new Blob([data]);
-
-      image.src = URL.createObjectURL(blob);
+    if (res.data.payload) {
+      image.src = URL.createObjectURL(new Blob([res.data.payload]));
     }
   };
 
-  invert.onclick = () => {
-    const data = optimizer.invert(source);
+  invert.onclick = async () => {
+    const res = await swarm.post({ type: "INVERT", payload: source });
 
-    if (data) {
-      const blob = new Blob([data]);
-
-      image.src = URL.createObjectURL(blob);
+    if (res.data.payload) {
+      image.src = URL.createObjectURL(new Blob([res.data.payload]));
     }
   };
 
-  thumbnail.onclick = () => {
-    const data = optimizer.thumbnail(source, 200, 200);
+  thumbnail.onclick = async () => {
+    const res = await swarm.post({ type: "THUMBNAIL", payload: source });
 
-    if (data) {
-      const blob = new Blob([data]);
-
-      image.src = URL.createObjectURL(blob);
+    if (res.data.payload) {
+      image.src = URL.createObjectURL(new Blob([res.data.payload]));
     }
   };
 }
