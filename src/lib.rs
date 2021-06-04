@@ -10,6 +10,12 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
+pub struct ImagePtr {
+    pub mem_loc: *const u8,
+    pub size: usize,
+}
+
+#[wasm_bindgen]
 pub struct ImageOptimizer {}
 
 #[wasm_bindgen]
@@ -26,12 +32,24 @@ impl ImageOptimizer {
         })
     }
 
+    pub fn blur_as_ptr(&self, data: &[u8], value: f32) -> Option<ImagePtr> {
+        let image = self.blur(&data, value)?;
+
+        Some(self.to_image_ptr(&image))
+    }
+
     pub fn brighten(&self, data: &[u8], value: i32) -> Option<Vec<u8>> {
         self.read_with_format(&data, |img, format, bytes| {
             img.brighten(value)
                 .write_to(bytes, format)
                 .expect("failed to brighten image");
         })
+    }
+
+    pub fn brighten_as_ptr(&self, data: &[u8], value: i32) -> Option<ImagePtr> {
+        let image = self.brighten(&data, value)?;
+
+        Some(self.to_image_ptr(&image))
     }
 
     pub fn grayscale(&self, data: &[u8]) -> Option<Vec<u8>> {
@@ -42,6 +60,12 @@ impl ImageOptimizer {
         })
     }
 
+    pub fn grayscale_as_ptr(&self, data: &[u8]) -> Option<ImagePtr> {
+        let image = self.grayscale(&data)?;
+
+        Some(self.to_image_ptr(&image))
+    }
+
     pub fn invert(&self, data: &[u8]) -> Option<Vec<u8>> {
         self.read_with_format(&data, |img, format, bytes| {
             img.invert();
@@ -50,12 +74,24 @@ impl ImageOptimizer {
         })
     }
 
+    pub fn invert_as_ptr(&self, data: &[u8]) -> Option<ImagePtr> {
+        let image = self.invert(&data)?;
+
+        Some(self.to_image_ptr(&image))
+    }
+
     pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Option<Vec<u8>> {
         self.read_with_format(&data, |img, format, bytes| {
             img.thumbnail(width, height)
                 .write_to(bytes, format)
                 .expect("failed to thumbnail image");
         })
+    }
+
+    pub fn thumbnail_as_ptr(&self, data: &[u8], width: u32, height: u32) -> Option<ImagePtr> {
+        let image = self.thumbnail(&data, width, height)?;
+
+        Some(self.to_image_ptr(&image))
     }
 
     fn read_with_format<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
@@ -78,6 +114,13 @@ impl ImageOptimizer {
             }
         } else {
             None
+        }
+    }
+
+    fn to_image_ptr(&self, data: &Vec<u8>) -> ImagePtr {
+        ImagePtr {
+            mem_loc: data.as_ptr(),
+            size: data.len(),
         }
     }
 }
