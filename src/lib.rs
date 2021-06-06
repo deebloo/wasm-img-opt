@@ -16,7 +16,7 @@ pub struct ImagePtr {
 }
 
 impl ImagePtr {
-    pub fn new(data: &Vec<u8>) -> Self
+    pub fn new(data: &Vec<u8>) -> Self {
         Self {
             mem_loc: data.as_ptr(),
             size: data.len(),
