@@ -15,6 +15,15 @@ pub struct ImagePtr {
     pub size: usize,
 }
 
+impl ImagePtr {
+    pub fn new(data: &Vec<u8>) -> Self
+        Self {
+            mem_loc: data.as_ptr(),
+            size: data.len(),
+        }
+    }
+}
+
 #[wasm_bindgen]
 pub struct ImageOptimizer {}
 
@@ -35,7 +44,7 @@ impl ImageOptimizer {
     pub fn blur_as_ptr(&self, data: &[u8], value: f32) -> Option<ImagePtr> {
         let image = self.blur(&data, value)?;
 
-        Some(self.to_image_ptr(&image))
+        Some(ImagePtr::new(&image))
     }
 
     pub fn brighten(&self, data: &[u8], value: i32) -> Option<Vec<u8>> {
@@ -49,7 +58,7 @@ impl ImageOptimizer {
     pub fn brighten_as_ptr(&self, data: &[u8], value: i32) -> Option<ImagePtr> {
         let image = self.brighten(&data, value)?;
 
-        Some(self.to_image_ptr(&image))
+        Some(ImagePtr::new(&image))
     }
 
     pub fn grayscale(&self, data: &[u8]) -> Option<Vec<u8>> {
@@ -63,7 +72,7 @@ impl ImageOptimizer {
     pub fn grayscale_as_ptr(&self, data: &[u8]) -> Option<ImagePtr> {
         let image = self.grayscale(&data)?;
 
-        Some(self.to_image_ptr(&image))
+          Some(ImagePtr::new(&image))
     }
 
     pub fn invert(&self, data: &[u8]) -> Option<Vec<u8>> {
@@ -77,7 +86,7 @@ impl ImageOptimizer {
     pub fn invert_as_ptr(&self, data: &[u8]) -> Option<ImagePtr> {
         let image = self.invert(&data)?;
 
-        Some(self.to_image_ptr(&image))
+        Some(ImagePtr::new(&image))
     }
 
     pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Option<Vec<u8>> {
@@ -91,7 +100,7 @@ impl ImageOptimizer {
     pub fn thumbnail_as_ptr(&self, data: &[u8], width: u32, height: u32) -> Option<ImagePtr> {
         let image = self.thumbnail(&data, width, height)?;
 
-        Some(self.to_image_ptr(&image))
+        Some(ImagePtr::new(&image))
     }
 
     fn read_with_format<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
@@ -114,13 +123,6 @@ impl ImageOptimizer {
             }
         } else {
             None
-        }
-    }
-
-    fn to_image_ptr(&self, data: &Vec<u8>) -> ImagePtr {
-        ImagePtr {
-            mem_loc: data.as_ptr(),
-            size: data.len(),
         }
     }
 }
