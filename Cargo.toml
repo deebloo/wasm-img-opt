@@ -11,12 +11,11 @@ edition = "2018"
 
 [dependencies]
 image = "0.23.14"
-num-complex = "0.4.0"
 wasm-bindgen = { version = "0.2" }
+wee_alloc = { version = "0.4.5", optional = true }
 
 [profile.release]
-lto = true
-opt-level = 'z'
+opt-level = 's'
 
 [features]
-# default = ["wee_alloc"]
+default = ["wee_alloc"]

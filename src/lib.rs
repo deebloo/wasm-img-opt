@@ -1,4 +1,4 @@
-use image;
+use image::{DynamicImage, ImageFormat};
 use image::io::Reader;
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
@@ -106,7 +106,7 @@ pub fn thumbnail_as_ptr(data: &[u8], width: u32, height: u32) -> Option<ImagePtr
 
 fn read_with_format<F>(data: &[u8], f: F) -> Option<Vec<u8>>
 where
-    F: FnOnce(&mut image::DynamicImage, image::ImageFormat, &mut Vec<u8>),
+    F: FnOnce(&mut DynamicImage, ImageFormat, &mut Vec<u8>),
 {
     let cursor = Cursor::new(data);
 
