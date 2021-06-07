@@ -25,104 +25,104 @@ impl ImagePtr {
 }
 
 #[wasm_bindgen]
-pub struct ImageOptimizer {}
+pub fn blur(data: &[u8], value: f32) -> Option<Vec<u8>> {
+    read_with_format(&data, |img, format, bytes| {
+        img.blur(value)
+            .write_to(bytes, format)
+            .expect("failed to blur image");
+    })
+}
 
 #[wasm_bindgen]
-impl ImageOptimizer {
-    pub fn new() -> Self {
-        Self {}
-    }
+pub fn blur_as_ptr(data: &[u8], value: f32) -> Option<ImagePtr> {
+    let image = blur(&data, value)?;
 
-    pub fn blur(&self, data: &[u8], value: f32) -> Option<Vec<u8>> {
-        self.read_with_format(&data, |img, format, bytes| {
-            img.blur(value)
-                .write_to(bytes, format)
-                .expect("failed to blur image");
-        })
-    }
+    Some(ImagePtr::new(&image))
+}
 
-    pub fn blur_as_ptr(&self, data: &[u8], value: f32) -> Option<ImagePtr> {
-        let image = self.blur(&data, value)?;
+#[wasm_bindgen]
+pub fn brighten(data: &[u8], value: i32) -> Option<Vec<u8>> {
+    read_with_format(&data, |img, format, bytes| {
+        img.brighten(value)
+            .write_to(bytes, format)
+            .expect("failed to brighten image");
+    })
+}
 
-        Some(ImagePtr::new(&image))
-    }
+#[wasm_bindgen]
+pub fn brighten_as_ptr(data: &[u8], value: i32) -> Option<ImagePtr> {
+    let image = brighten(&data, value)?;
 
-    pub fn brighten(&self, data: &[u8], value: i32) -> Option<Vec<u8>> {
-        self.read_with_format(&data, |img, format, bytes| {
-            img.brighten(value)
-                .write_to(bytes, format)
-                .expect("failed to brighten image");
-        })
-    }
+    Some(ImagePtr::new(&image))
+}
 
-    pub fn brighten_as_ptr(&self, data: &[u8], value: i32) -> Option<ImagePtr> {
-        let image = self.brighten(&data, value)?;
+#[wasm_bindgen]
+pub fn grayscale(data: &[u8]) -> Option<Vec<u8>> {
+    read_with_format(&data, |img, format, bytes| {
+        img.grayscale()
+            .write_to(bytes, format)
+            .expect("failed to grayscale image");
+    })
+}
 
-        Some(ImagePtr::new(&image))
-    }
+#[wasm_bindgen]
+pub fn grayscale_as_ptr(data: &[u8]) -> Option<ImagePtr> {
+    let image = grayscale(&data)?;
 
-    pub fn grayscale(&self, data: &[u8]) -> Option<Vec<u8>> {
-        self.read_with_format(&data, |img, format, bytes| {
-            img.grayscale()
-                .write_to(bytes, format)
-                .expect("failed to grayscale image");
-        })
-    }
+    Some(ImagePtr::new(&image))
+}
 
-    pub fn grayscale_as_ptr(&self, data: &[u8]) -> Option<ImagePtr> {
-        let image = self.grayscale(&data)?;
+#[wasm_bindgen]
+pub fn invert(data: &[u8]) -> Option<Vec<u8>> {
+    read_with_format(&data, |img, format, bytes| {
+        img.invert();
 
-          Some(ImagePtr::new(&image))
-    }
+        img.write_to(bytes, format).expect("failed to invert image");
+    })
+}
 
-    pub fn invert(&self, data: &[u8]) -> Option<Vec<u8>> {
-        self.read_with_format(&data, |img, format, bytes| {
-            img.invert();
+#[wasm_bindgen]
+pub fn invert_as_ptr(data: &[u8]) -> Option<ImagePtr> {
+    let image = invert(&data)?;
 
-            img.write_to(bytes, format).expect("failed to invert image");
-        })
-    }
+    Some(ImagePtr::new(&image))
+}
 
-    pub fn invert_as_ptr(&self, data: &[u8]) -> Option<ImagePtr> {
-        let image = self.invert(&data)?;
+#[wasm_bindgen]
+pub fn thumbnail(data: &[u8], width: u32, height: u32) -> Option<Vec<u8>> {
+    read_with_format(&data, |img, format, bytes| {
+        img.thumbnail(width, height)
+            .write_to(bytes, format)
+            .expect("failed to thumbnail image");
+    })
+}
 
-        Some(ImagePtr::new(&image))
-    }
+#[wasm_bindgen]
+pub fn thumbnail_as_ptr(data: &[u8], width: u32, height: u32) -> Option<ImagePtr> {
+    let image = thumbnail(&data, width, height)?;
 
-    pub fn thumbnail(&self, data: &[u8], width: u32, height: u32) -> Option<Vec<u8>> {
-        self.read_with_format(&data, |img, format, bytes| {
-            img.thumbnail(width, height)
-                .write_to(bytes, format)
-                .expect("failed to thumbnail image");
-        })
-    }
+    Some(ImagePtr::new(&image))
+}
 
-    pub fn thumbnail_as_ptr(&self, data: &[u8], width: u32, height: u32) -> Option<ImagePtr> {
-        let image = self.thumbnail(&data, width, height)?;
+fn read_with_format<F>(data: &[u8], f: F) -> Option<Vec<u8>>
+where
+    F: FnOnce(&mut image::DynamicImage, image::ImageFormat, &mut Vec<u8>),
+{
+    let cursor = Cursor::new(data);
 
-        Some(ImagePtr::new(&image))
-    }
+    if let Ok(reader) = Reader::new(cursor).with_guessed_format() {
+        let format = reader.format()?;
 
-    fn read_with_format<F>(&self, data: &[u8], f: F) -> Option<Vec<u8>>
-    where
-        F: FnOnce(&mut image::DynamicImage, image::ImageFormat, &mut Vec<u8>),
-    {
-        let cursor = Cursor::new(data);
+        if let Ok(mut img) = reader.decode() {
+            let mut bytes: Vec<u8> = Vec::new();
 
-        if let Ok(reader) = Reader::new(cursor).with_guessed_format() {
-            let format = reader.format()?;
+            f(&mut img, format, &mut bytes);
 
-            if let Ok(mut img) = reader.decode() {
-                let mut bytes: Vec<u8> = Vec::new();
-
-                f(&mut img, format, &mut bytes);
-
-                Some(bytes)
-            } else {
-                None
-            }
+            Some(bytes)
         } else {
             None
         }
+    } else {
+        None
     }
 }
